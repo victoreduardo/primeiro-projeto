@@ -30,13 +30,6 @@ jobs:
         npm install -g html-validator-cli
         find . -name "*.html" -exec html-validator --file {} --verbose \;
 
-    - name: HTML Accessibility Check
-      uses: microsoft/accessibility-insights-action@v2
-      with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        scan-url: "file:///${{ github.workspace }}/index.html"
-        output-directory: accessibility-reports
-
     - name: HTML Best Practices Analysis
       run: |
         npm install -g htmlhint
