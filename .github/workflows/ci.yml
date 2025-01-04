@@ -31,7 +31,7 @@ jobs:
         find . -name "*.html" -exec html-validator --file {} --verbose \;
 
     - name: HTML Accessibility Check
-      uses: microsoft/accessibility-insights-action@v2
+      uses: microsoft/accessibility-insights-action@v3
       with:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         scan-url: "file:///${{ github.workspace }}/index.html"
