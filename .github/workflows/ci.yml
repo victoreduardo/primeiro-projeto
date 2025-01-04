@@ -58,15 +58,6 @@ jobs:
           lighthouse/
           trivy-results.txt
 
-    - name: Generate HTML Analysis Summary
-      if: always()
-      run: |
-        echo "# HTML Analysis Summary" > analysis-summary.md
-        echo "## Validation Results" >> analysis-summary.md
-        cat htmlhint-results.txt >> analysis-summary.md
-        echo "## Accessibility Results" >> analysis-summary.md
-        cat accessibility-reports/summary.md >> analysis-summary.md
-
     - name: Create Issue on Failure
       if: failure()
       uses: actions/github-script@v6
