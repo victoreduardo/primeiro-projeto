@@ -1,0 +1,87 @@
+name: HTML Code Analysis Pipeline
+
+on:
+  push:
+    branches: [ main, development ]
+    paths:
+      - '**.html'
+      - '**.htm'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '**.html'
+      - '**.htm'
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16'
+
+    - name: HTML Validation
+      run: |
+        npm install -g html-validator-cli
+        find . -name "*.html" -exec html-validator --file {} --verbose \;
+
+    - name: HTML Accessibility Check
+      uses: microsoft/accessibility-insights-action@v2
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        scan-url: "file:///${{ github.workspace }}/index.html"
+        output-directory: accessibility-reports
+
+    - name: HTML Best Practices Analysis
+      run: |
+        npm install -g htmlhint
+        htmlhint "**/*.html"
+
+    - name: Performance Analysis
+      run: |
+        npm install -g lighthouse-ci
+        lhci autorun --collect.staticDistDir=.
+
+    - name: Security Scan
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        security-checks: 'vuln,config,secret'
+        ignore-unfixed: true
+        format: 'table'
+        output: 'trivy-results.txt'
+
+    - name: Upload Analysis Reports
+      uses: actions/upload-artifact@v2
+      with:
+        name: analysis-reports
+        path: |
+          accessibility-reports/
+          lighthouse/
+          trivy-results.txt
+
+    - name: Generate HTML Analysis Summary
+      if: always()
+      run: |
+        echo "# HTML Analysis Summary" > analysis-summary.md
+        echo "## Validation Results" >> analysis-summary.md
+        cat htmlhint-results.txt >> analysis-summary.md
+        echo "## Accessibility Results" >> analysis-summary.md
+        cat accessibility-reports/summary.md >> analysis-summary.md
+
+    - name: Create Issue on Failure
+      if: failure()
+      uses: actions/github-script@v5
+      with:
+        script: |
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.name,
+            title: 'HTML Analysis Failed',
+            body: 'Analysis pipeline detected issues. Please review the attached reports.'
+          })
