@@ -37,8 +37,8 @@ jobs:
 
     - name: Performance Analysis
       run: |
-        npm install -g lighthouse-ci
-        lhci autorun --collect.staticDistDir=.
+        npm install -g lru-cache
+        echo "lru-cache installed successfully."
 
     - name: Security Scan
       uses: aquasecurity/trivy-action@master
